@@ -1,6 +1,8 @@
 FROM python:3.10.11-alpine AS builder
 
 ENV PYTHONUNBUFFERED=1
+
+# for psutil
 RUN apk add --update --no-cache --virtual .tmp-build-deps \
         build-base \
         linux-headers \

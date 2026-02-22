@@ -16,5 +16,4 @@ ENV_FILE=/workspaces/mainframe/src/mainframe/.env
   echo "DEBUG=True"
   echo "EARTHQUAKE_DEFAULT_COORDINATES=0,0"
   echo "ENV=local"
-  echo "SECRET_KEY=local_dummy_key"
 } >> $ENV_FILE
