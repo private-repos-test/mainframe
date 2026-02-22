@@ -60,7 +60,7 @@ if [ -d "${HOME}/.oh-my-zsh" ]; then
   echo "[zsh] ${HOME}/.oh-my-zsh - path already exists - skipping installation"
 else
   echo "[zsh] Installing zsh" && sudo apt-get install -y zsh
-  echo "[zsh] Installing ohmyzsh" && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  echo "[zsh] Installing ohmyzsh" && sh -c "$(curl --proto "=https" -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   echo "[zsh] Setting .zshrc aliases" && cat "${PROJECT_DIR}/deploy/.zshrc" >> "${HOME}/.zshrc"
   echo "[zsh] Setting theme to af-magic" && sed -i -e 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/g' "${HOME}/.zshrc"
   echo "[zsh] Setting .bashrc - zsh " && cat "zsh" >> "${HOME}/.bashrc"
