@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - name: Run Safety CLI to check for vulnerabilities
-        uses: pyupio/safety-action@d3575b14a5cf597e34d5f7c420d2d5b4a84df410
+        uses: pyupio/safety-action@2591cf2f3e67ba68b923f4c92f0d36e281c65023
         with:
           api-key: ${{ secrets.SAFETY_API_KEY }}
           args: -i 59234 --detailed-output

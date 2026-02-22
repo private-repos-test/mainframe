@@ -7,6 +7,7 @@ scanning-settings:
   system:
     targets: []
 
+
 report:
   dependency-vulnerabilities:
     enabled: true
@@ -15,6 +16,7 @@ report:
         environment-results: true
         unpinned-requirements: true
       cvss-severity: []
+
 
 fail-scan-with-exit-code:
   dependency-vulnerabilities:
