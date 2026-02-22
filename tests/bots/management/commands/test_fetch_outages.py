@@ -15,7 +15,7 @@ class TestFetchOutagesCommand:
                 "--branch",
                 "Bucharest",
                 "--url",
-                "https://example.com/invalid-url",
+                "https://example.com/invalid",
             )
 
     @mock.patch("mainframe.bots.management.commands.fetch_outages.fetch")

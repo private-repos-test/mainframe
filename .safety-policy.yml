@@ -7,7 +7,6 @@ scanning-settings:
   system:
     targets: []
 
-
 report:
   dependency-vulnerabilities:
     enabled: true
@@ -16,23 +15,18 @@ report:
         environment-results: true
         unpinned-requirements: true
       cvss-severity: []
-      vulnerabilities:
-        59234:
-          reason: "This vulnerability does not affect our usage."
-          expires: "2025-12-31"
-
 
 fail-scan-with-exit-code:
   dependency-vulnerabilities:
     enabled: true
     fail-on-any-of:
       cvss-severity:
-        - high
         - critical
+        - high
         - medium
       exploitability:
-        - high
         - critical
+        - high
         - medium
 
 security-updates:
