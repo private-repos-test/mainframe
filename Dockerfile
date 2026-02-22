@@ -33,4 +33,4 @@ COPY src gunicorn.config.py ./
 # user.  If we ever drop privileges later it must happen after those
 # files are read.
 #USER appuser
-CMD ["sh", "-c", "exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT"]
+CMD exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT
