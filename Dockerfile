@@ -28,11 +28,9 @@ COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/gunicorn
 WORKDIR /app
 COPY src gunicorn.config.py ./
 
-USER appuser
-
 # run as root in deployment; Cloud Run (and local mounts) may create
 # env/secret files that are root-owned and unreadable by a non-root
 # user.  If we ever drop privileges later it must happen after those
 # files are read.
 #USER appuser
-CMD exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT
+CMD ["sh", "-c", "exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT"]
