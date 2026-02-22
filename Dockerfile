@@ -21,18 +21,13 @@ RUN echo "foo" > /temp_requirements/README.md && \
 FROM python:3.10.11-alpine
 ENV PYTHONUNBUFFERED=1
 
-# read below about why we run as root in deployment
-# RUN addgroup -S appuser && adduser -S appuser -G appuser
-
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
 COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/gunicorn
 
 WORKDIR /app
 COPY src gunicorn.config.py ./
 
-# run as root in deployment; Cloud Run (and local mounts) may create
-# env/secret files that are root-owned and unreadable by a non-root
-# user.  If we ever drop privileges later it must happen after those
-# files are read.
-#USER appuser
-CMD exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT
+USER appuser
+
+CMD ["sh", "-c", "exec gunicorn -c gunicorn.config.py --bind 0.0.0.0:$PORT"]
