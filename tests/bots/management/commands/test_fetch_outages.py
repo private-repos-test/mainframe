@@ -15,7 +15,7 @@ class TestFetchOutagesCommand:
                 "--branch",
                 "Bucharest",
                 "--url",
-                "http://example.com/invalid",
+                "https://example.com/invalid",
             )
 
     @mock.patch("mainframe.bots.management.commands.fetch_outages.fetch")
@@ -27,7 +27,7 @@ class TestFetchOutagesCommand:
                 "--branch",
                 "Bucharest",
                 "--url",
-                "http://example.com/0",
+                "https://example.com/0",
             )
 
     @override_settings(TIME_ZONE="Europe/Bucharest")
@@ -55,7 +55,7 @@ class TestFetchOutagesCommand:
         calendar_client_mock.return_value = client_instance
 
         call_command(
-            "fetch_outages", "--branch", "Bucharest", "--url", "http://example.com/0"
+            "fetch_outages", "--branch", "Bucharest", "--url", "https://example.com/0"
         )
 
         client_instance.clear_events.assert_called_once_with(
@@ -89,7 +89,7 @@ class TestFetchOutagesCommand:
         calendar_client_mock.return_value = client_instance
 
         call_command(
-            "fetch_outages", "--branch", "Bucharest", "--url", "http://example.com/0"
+            "fetch_outages", "--branch", "Bucharest", "--url", "https://example.com/0"
         )
 
         client_instance.clear_events.assert_called_once()

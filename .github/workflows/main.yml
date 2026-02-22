@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: send telegram message
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3
         with:
           disable_notification: true
           disable_web_page_preview: true
@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         id: filter
         with:
           filters: |
@@ -50,16 +50,16 @@ jobs:
               - 'frontend/**'
 
   pre-commit:
-    name: pre-commit (w/o pytest)
+    name: pre-commit (w/o migrations check)
     runs-on: ubuntu-latest
     needs: changes
     if: ${{ (needs.changes.outputs.backend == 'true') }}
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b
       - name: Installing dev dependencies for migration check
         run: uv sync
-      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
         env:
           ENV: ci
           SKIP: migrations-check
@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - name: Run Safety CLI to check for vulnerabilities
-        uses: pyupio/safety-action@v1
+        uses: pyupio/safety-action@2591cf2f3e67ba68b923f4c92f0d36e281c65023
         with:
           api-key: ${{ secrets.SAFETY_API_KEY }}
           args: -i 59234 --detailed-output
@@ -98,7 +98,7 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b
       - name: Run CI
         run: uv run poe ci
       - name: Upload coverage report
@@ -122,7 +122,7 @@ jobs:
           name: coverage-report
           path: .
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -136,7 +136,7 @@ jobs:
       - sonarqube
     steps:
       - name: Notify BE start deployment
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3
         with:
           disable_notification: true
           disable_web_page_preview: true
@@ -149,14 +149,14 @@ jobs:
 
       - name: Setup GCloud Auth
         id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@a61909d048e0be579b6c15b27088d19668493851
         with:
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
           token_format: 'access_token'
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.1
+        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba
 
       - name: Build & Push
         run: |-
@@ -175,7 +175,7 @@ jobs:
             --platform "managed" \
             --allow-unauthenticated
       - name: Notify
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3
         with:
           disable_notification: true
           disable_web_page_preview: true
@@ -192,7 +192,7 @@ jobs:
     if: ${{ needs.changes.outputs.frontend == 'true' }}
     steps:
       - name: Notify FE start deployment
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3
         with:
           disable_notification: true
           disable_web_page_preview: true
@@ -218,7 +218,7 @@ jobs:
             nodeModules-
       - name: Install dependencies
         working-directory: frontend
-        run: npm install --frozen-lockfile
+        run: npm install --frozen-lockfile --ignore-scripts
         env:
           CI: true
 
@@ -254,14 +254,14 @@ jobs:
 
       - name: Setup GCloud Auth
         id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@a61909d048e0be579b6c15b27088d19668493851
         with:
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
           token_format: 'access_token'
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.1
+        uses: google-github-actions/setup-gcloud@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba
 
       # Build and push image to Google Container Registry
       - name: Build & Push
@@ -283,7 +283,7 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars "REACT_APP_NGROK_URL=$REACT_APP_NGROK_URL,REACT_APP_API_URL=$REACT_APP_API_URL"
       - name: Notify
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@221e6b684967abe813051ee4a37dd61770a83ad3
         with:
           disable_notification: true
           disable_web_page_preview: true
