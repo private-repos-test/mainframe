@@ -20,52 +20,40 @@ from mainframe.core.tasks import schedule_deploy
 PREFIX = "[[GitHub]]"
 
 
-@csrf_exempt
-def mainframe(request):  # noqa: C901, PLR0911
-    if request.method != "POST":
-        raise MethodNotAllowed(request.method)
-
-    # Verify if request came from GitHub
-    client_ip_address = ip_address(
-        request.META.get("HTTP_X_FORWARDED_FOR").split(", ")[0]
-    )
-    env = environ.Env()
-    response = requests.get(
-        "https://api.github.com/meta",
-        headers={"Authorization": f"Bearer {env('GITHUB_ACCESS_TOKEN')}"},
-        timeout=30,
-    )
+def _validate_response(response, ip):
     if response.status_code != status.HTTP_200_OK:
         asyncio.run(
             send_telegram_message(
-                f"{PREFIX} Warning, {client_ip_address} tried "
+                f"{PREFIX} Warning, {ip} tried "
                 f"to call mainframe github webhook URL"
             )
         )
-        return HttpResponseForbidden(f"Unexpected status: {response.status_code}")
+        return False
 
     for valid_ip in response.json()["hooks"]:
-        if client_ip_address in ip_network(valid_ip):
+        if ip in ip_network(valid_ip):
             break
     else:
         asyncio.run(
             send_telegram_message(
-                f"{PREFIX} Warning, {client_ip_address} tried "
+                f"{PREFIX} Warning, {ip} tried "
                 f"to call mainframe github webhook URL"
             )
         )
-        return HttpResponseForbidden("Permission denied.")
+        return False
+    return True
 
-    # Verify the request signature
+
+def _verify_signature(request):
     header_signature = request.META.get("HTTP_X_HUB_SIGNATURE")
     if header_signature is None:
         asyncio.run(send_telegram_message(text=f"{PREFIX} No signature"))
-        return HttpResponseForbidden("Permission denied.")
+        return False
 
     sha_name, signature = header_signature.split("=")
     if sha_name != "sha1":
         asyncio.run(send_telegram_message(text=f"{PREFIX} operation not supported"))
-        return HttpResponseServerError("Operation not supported.", status=501)
+        return False
 
     mac = hmac.new(
         force_bytes(settings.SECRET_KEY),
@@ -73,8 +61,34 @@ def mainframe(request):  # noqa: C901, PLR0911
         digestmod=hashlib.sha1,
     )
     if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
-        asyncio.run(send_telegram_message(text=f"{PREFIX} Permission denied"))
-        return HttpResponseForbidden("Permission denied.")
+        asyncio.run(send_telegram_message(text=f"{PREFIX} Invalid signature"))
+        return False
+
+    return True
+
+
+@csrf_exempt
+def mainframe(request):  # noqa: C901, PLR0911
+    permission_denied = "Permission denied."
+
+    if request.method != "POST":
+        raise MethodNotAllowed(request.method)
+
+    env = environ.Env()
+    response = requests.get(
+        "https://api.github.com/meta",
+        headers={"Authorization": f"Bearer {env('GITHUB_ACCESS_TOKEN')}"},
+        timeout=30,
+    )
+    # Verify if request came from GitHub
+    ip = ip_address(
+        request.META.get("HTTP_X_FORWARDED_FOR").split(", ")[0]
+    )
+    if not _validate_response(response, ip):
+        return HttpResponseForbidden("Failed to validate GitHub IPs")
+
+    if _verify_signature(request) is False:
+        return HttpResponseForbidden(permission_denied)
 
     event = request.META.get("HTTP_X_GITHUB_EVENT", "ping")
     payload = json.loads(request.body)
