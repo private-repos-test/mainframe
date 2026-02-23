@@ -17,6 +17,8 @@ from mainframe.core.logs import capture_command_logs
 from mainframe.core.models import TimeStampedModel
 from mainframe.core.tasks import schedule_task
 
+JSON_EXTENSION = ".json"
+
 
 class Link(TypedDict):
     title: str
@@ -206,8 +208,8 @@ class Watcher(TimeStampedModel):
         # Build header and footer (same format as send_notification)
         header = f"📣 <b>{self.name}</b> 📣\n"
         url = self.url
-        if ".json" in url:
-            url = url[: url.index(".json")]
+        if JSON_EXTENSION in url:
+            url = url[: url.index(JSON_EXTENSION)]
         footer = f"\nMore articles: <a href='{url}'>here</a>"
 
         kept_items = []
@@ -254,8 +256,8 @@ class Watcher(TimeStampedModel):
             ]
         )
         url = self.url
-        if ".json" in url:
-            url = url[: url.index(".json")]
+        if JSON_EXTENSION in url:
+            url = url[: url.index(JSON_EXTENSION)]
         kwargs = {"parse_mode": ParseMode.HTML}
         if self.chat_id:
             kwargs["chat_id"] = self.chat_id
@@ -267,14 +269,14 @@ class Watcher(TimeStampedModel):
 
 
 @receiver(signals.post_delete, sender=Watcher)
-def post_delete(sender, instance, **kwargs):  # noqa: PYL-W0613,
+def post_delete(sender, instance, **kwargs):
     if settings.ENV != "local":
         instance.cron = ""
         schedule_task(instance)
 
 
 @receiver(signals.post_save, sender=Watcher)
-def post_save(sender, instance, **kwargs):  # noqa: PYL-W0613,
+def post_save(sender, instance, **kwargs):
     if settings.ENV != "local":
         if getattr(instance, "is_renamed", False):  # set in core/serializers.py update
             instance.cron = ""

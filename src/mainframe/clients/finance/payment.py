@@ -9,6 +9,8 @@ from pypdf import PdfReader
 from mainframe.finance.models import Payment, Timetable
 from mainframe.finance.tasks import backup_finance_model
 
+FROM_ACCOUNT = "Din contul"
+
 
 class PaymentImportError(Exception): ...
 
@@ -43,7 +45,7 @@ def parse_installment(rows):
     principal = validate_starts_with(rows.pop(0), payment_type, "Principal", 2)
     interest = validate_starts_with(rows.pop(0), payment_type, "Dobanda", 3)
     additional_data = {
-        "from": validate_starts_with(rows.pop(0), payment_type, "Din contul", 4)
+        "from": validate_starts_with(rows.pop(0), payment_type, FROM_ACCOUNT, 4)
     }
     return Payment(
         additional_data=additional_data,
@@ -59,7 +61,7 @@ def parse_interest(rows):
     payment_type = "Dobanda datorata"
     row = rows.pop(0).replace(f"{payment_type}", "")
     day, month, year, total, remaining = row.split()
-    account = validate_starts_with(rows.pop(0), payment_type, "Din contul", 1)
+    account = validate_starts_with(rows.pop(0), payment_type, FROM_ACCOUNT, 1)
     interest = validate_starts_with(rows.pop(0), payment_type, "Dobanda", 2)
     details = validate_starts_with(rows.pop(0), payment_type, "Detalii", 3)
     reference = validate_starts_with(rows.pop(0), payment_type, "Referinta", 4)
@@ -114,7 +116,7 @@ class PaymentsImporter:
         date = parse_date(day, month, year)
         validate_starts_with(rows.pop(0), payment_type, "Data", 1)
         additional_data = {
-            "from": validate_starts_with(rows.pop(0), payment_type, "Din contul", 2),
+            "from": validate_starts_with(rows.pop(0), payment_type, FROM_ACCOUNT, 2),
             "details": validate_starts_with(rows.pop(0), payment_type, "Detalii", 3),
         }
         reference = validate_starts_with(rows.pop(0), payment_type, "Referinta", 4)

@@ -168,6 +168,19 @@ class CTPClient:
             )
 
     def parse_schedule(self, args) -> Optional[Schedule]:  # noqa: C901
+        def handle_wrong_date_row(row):
+            if row == "20.02.20232":
+                return datetime.strptime(row, "%d.%m.%Y2")
+            if row == "17.05.2024.2024":
+                return datetime.strptime(row, "%d.%m.%Y.2024")
+            if row == "30.09.06.2024":
+                return datetime.strptime(row, "%d.%m.06.%Y")
+            if row == "24.02.2024v":
+                return datetime.strptime(row, "%d.%m.%Yv")
+
+            self.logger.exception("Unexpected date format %s", row)
+            return None
+
         response, line, occ, url = args
         if not response or "<title> 404 Not Found" in response:
             self.logger.warning("No or 404 in response for %s", url)
@@ -180,19 +193,7 @@ class CTPClient:
                 datetime.strptime(date_row, "%d.%m.%Y") if date_row else None
             )
         except ValueError:
-            if date_row == "20.02.20232":
-                schedule_start_date = datetime.strptime(date_row, "%d.%m.%Y2")
-            elif date_row == "17.05.2024.2024":
-                schedule_start_date = datetime.strptime(date_row, "%d.%m.%Y.2024")
-            elif date_row == "30.09.06.2024":
-                schedule_start_date = datetime.strptime(date_row, "%d.%m.06.%Y")
-            elif date_row == ".":
-                schedule_start_date = None
-            elif date_row == "24.02.2024v":
-                schedule_start_date = datetime.strptime(date_row, "%d.%m.%Yv")
-            else:
-                self.logger.exception("Unexpected date format %s", date_row)
-                return None
+            schedule_start_date = handle_wrong_date_row(date_row)
 
         reader = csv.DictReader(rows[5:], fieldnames=["time1", "time2"])
         terminal1_schedule = []
