@@ -20,28 +20,29 @@ class BotSerializer(serializers.ModelSerializer):
         model = Bot
         fields = "__all__"
 
+    def _set_webhook(self, bot, webhook):
+        try:
+            result = bot.set_webhook(webhook)
+        except telegram.error.TelegramError as e:
+            raise serializers.ValidationError({"Telegram Error": e.message}) from e
+        logger.info("Set new webhook '%s': %s", webhook, result)
+
+    def _delete_webhook(self, bot):
+        try:
+            result = bot.delete_webhook()
+        except telegram.error.TelegramError as e:
+            raise serializers.ValidationError({"Telegram Error": e.message}) from e
+        logger.info("Deleted webhook: %s", result)
+
     def validate(self, attrs):  # noqa: C901, PLR0912
-        action = self.context["view"].action
-        if self.instance and action != "sync":
+        if self.instance:
             bot = self.instance.telegram_bot
             webhook = attrs.get("webhook")
             if webhook != self.instance.webhook:
                 if webhook:
-                    try:
-                        result = bot.set_webhook(webhook)
-                    except telegram.error.TelegramError as e:
-                        raise serializers.ValidationError(
-                            {"Telegram Error": e.message}
-                        ) from e
-                    logger.info("Set new webhook '%s': %s", webhook, result)
+                    self._set_webhook(bot, webhook)
                 else:
-                    try:
-                        result = bot.delete_webhook()
-                    except telegram.error.TelegramError as e:
-                        raise serializers.ValidationError(
-                            {"Telegram Error": e.message}
-                        ) from e
-                    logger.info("Deleted webhook: %s", result)
+                    self._delete_webhook(bot)
         return attrs
 
 

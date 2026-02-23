@@ -33,7 +33,7 @@ class CryptoViewSet(PnlActionModelViewSet):
         try:
             CryptoTransactionsImporter(file, logger).run()
         except CryptoImportError as e:
-            logger.error("Could not process file: %s - error: %s", file.name, e)
+            logger.error("Could not process file. (%s)", e)
             return Response(
                 f"Invalid file: {file.name}", status=status.HTTP_400_BAD_REQUEST
             )

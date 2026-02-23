@@ -80,10 +80,10 @@ class CommandsViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=["put"])
     def run(self, request, pk, **kwargs):
-        args = request.data.get("args") or []
-        kwargs = request.data.get("kwargs") or {}
+        cmd_args = request.data.get("args") or []
+        cmd_kwargs = request.data.get("kwargs") or {}
         try:
-            call_command(pk, *args, **kwargs)
+            call_command(pk, *cmd_args, **cmd_kwargs)
         except (CommandError, MainframeError) as e:
             return JsonResponse(
                 data={"detail": str(e)},

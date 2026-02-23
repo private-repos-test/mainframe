@@ -22,6 +22,6 @@ class TimetableViewSet(viewsets.ModelViewSet):
         try:
             import_timetable(file, logger)
         except TimetableImportError as e:
-            logger.error("Could not process file: %s - error: %s", file, e)
+            logger.error("Could not process file. (%s)", e)
             return Response(f"Invalid file: {file}", status.HTTP_400_BAD_REQUEST)
         return self.list(request, *args, **kwargs)

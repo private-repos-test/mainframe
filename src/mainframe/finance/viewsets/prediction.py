@@ -31,6 +31,8 @@ FINAL_STATUSES = [
     SIGNAL_LOCKED,
     SIGNAL_REVOKED,
 ]
+PREDICT_KEY = "tasks.predict"
+TRAIN_KEY = "tasks.train"
 
 
 class PredictionViewSet(viewsets.ViewSet):
@@ -40,12 +42,12 @@ class PredictionViewSet(viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         redis_client = get_redis_client()
         try:
-            train_data = redis_client.get("tasks.train")
+            train_data = redis_client.get(TRAIN_KEY)
         except redis.exceptions.ConnectionError:
             logger.exception(self.error)
             return JsonResponse({"detail": self.error}, status=400)
         train_data = json.loads(train_data) if train_data else None
-        predict_data = redis_client.get("tasks.predict")
+        predict_data = redis_client.get(PREDICT_KEY)
         predict_data = json.loads(predict_data) if predict_data else None
         return JsonResponse({"train": train_data, "predict": predict_data})
 
@@ -53,14 +55,14 @@ class PredictionViewSet(viewsets.ViewSet):
     def start_prediction(self, request, *args, **kwargs):
         redis_client = get_redis_client()
         try:
-            redis_entry = redis_client.get("tasks.predict")
+            redis_entry = redis_client.get(PREDICT_KEY)
         except redis.exceptions.ConnectionError:
             logger.exception(self.error)
             return JsonResponse({"detail": self.error}, status=400)
         details = json.loads(redis_entry) if redis_entry else {}
         if (status := details.get("status")) and status not in FINAL_STATUSES:
             return JsonResponse({"detail": f"prediction - {status}"}, status=400)
-        redis_client.delete("tasks.predict")
+        redis_client.delete(PREDICT_KEY)
 
         queryset = Transaction.objects.expenses().filter(
             category=Category.UNIDENTIFIED,
@@ -78,7 +80,7 @@ class PredictionViewSet(viewsets.ViewSet):
     def start_training(self, request, *args, **kwargs):
         redis_client = get_redis_client()
         try:
-            redis_entry = redis_client.get("tasks.train")
+            redis_entry = redis_client.get(TRAIN_KEY)
         except redis.exceptions.ConnectionError:
             logger.exception(self.error)
             return JsonResponse({"detail": self.error}, status=400)
@@ -86,7 +88,7 @@ class PredictionViewSet(viewsets.ViewSet):
         details = json.loads(redis_entry) if redis_entry else {}
         if (status := details.get("status")) and status not in FINAL_STATUSES:
             return JsonResponse({"detail": f"training - {status}"}, status=400)
-        redis_client.delete("tasks.train")
+        redis_client.delete(TRAIN_KEY)
 
         try:
             train(logger)
@@ -100,13 +102,13 @@ class PredictionViewSet(viewsets.ViewSet):
     @action(methods=["get"], detail=False, url_path="predict-status")
     def predict_status(self, request, *args, **kwargs):
         redis_client = get_redis_client()
-        if not (task := redis_client.get("tasks.predict")):
+        if not (task := redis_client.get(PREDICT_KEY)):
             raise Http404
         return JsonResponse(data={"type": "predict", **json.loads(task)})
 
     @action(methods=["get"], detail=False, url_path="train-status")
     def train_status(self, request, *args, **kwargs):
         redis_client = get_redis_client()
-        if not (task := redis_client.get("tasks.train")):
+        if not (task := redis_client.get(TRAIN_KEY)):
             raise Http404
         return JsonResponse(data={"type": "train", **json.loads(task)})

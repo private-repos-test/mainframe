@@ -183,7 +183,7 @@ class MealsInline(BaseInlines):
                     override_message
                     if override_message
                     else welcome_message.format(
-                        name=user.full_name, page=1, total=last_page, count=count
+                        name=user.full_name, page=1, total=last_page
                     )
                 ),
                 reply_markup=await cls.get_markup(
@@ -201,7 +201,7 @@ class MealsInline(BaseInlines):
                 override_message
                 if override_message
                 else welcome_message.format(
-                    name=user.full_name, page=page or 1, total=last_page, count=count
+                    name=user.full_name, page=page or 1, total=last_page
                 )
             ),
             reply_markup=await cls.get_markup(

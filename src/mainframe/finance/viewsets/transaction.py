@@ -67,7 +67,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         try:
             import_statement(file, logger)
         except StatementImportError as e:
-            logger.error("Could not process file: %s - error: %s", file.name, e)
+            logger.error("Could not process file. (%s)", e)
             return Response(
                 f"Invalid file: {file.name}", status=status.HTTP_400_BAD_REQUEST
             )
